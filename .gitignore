@@ -1,0 +1,11 @@
+/src/josh
+/*.txt
+
+/preprocess/AutoPhrase
+
+/datasets/nyt/*
+!/datasets/nyt/README.md
+
+/datasets/arxiv/*
+!/datasets/arxiv/README.md
+!/datasets/arxiv/arxiv_data.zip
