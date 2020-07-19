@@ -58,5 +58,5 @@ cd ..
 	-word-emb ${dataset}/${word_emb_file} -tree-emb ${dataset}/${tree_emb_file} \
 	-size ${word_dim} -window ${window_size} -sample 1e-3 -word-margin 0.25 -cat-margin 0.9 \
 	-alpha 0.025 -tree-period 128 -global-lambda 1.5 -lambda-cat 1.0 -lambda-tree 1.0 -negative 2 \
-	-expand 1 -pre-iter 2 \
+	-expand 1 -pretrain 2 \
 	-min-count ${min_count} -iter ${iter} -threads ${threads} 
