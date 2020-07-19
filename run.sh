@@ -34,7 +34,7 @@ window_size=5
 # minimum word count in corpus; words that appear less than this threshold will be discarded
 min_count=5
 
-# number of iterations to run on the corpus
+# number of total iterations to run on the corpus
 iter=10
 
 # number of threads to be run in parallel

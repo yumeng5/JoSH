@@ -1007,8 +1007,7 @@ void TrainModel() {
 
   ReadTaxo();
   ReadCategoryName();
-  printf("Pre-training for %lld epochs, in total %lld + %lld = %lld epochs\n", pretrain_iter, pretrain_iter, iter, pretrain_iter + iter);
-  iter += pretrain_iter;
+  printf("Pre-training for %lld epochs, in total %lld epochs\n", pretrain_iter, iter);
   for (iter_count = 0; iter_count < iter; iter_count++) {
     if (iter_count >= pretrain_iter) UpdateMargin();
     for (a = 0; a < num_threads; a++) pthread_create(&pt[a], NULL, TrainModelThread, (void *) a);
