@@ -90,14 +90,10 @@ int SimCompare(const void *a, const void *b) { // large -> small
 }
 
 // Reads a single word from a file, assuming space + tab + EOL to be word boundaries
-void ReadWord(char *word, FILE *fin, char *eof) {
+void ReadWord(char *word, FILE *fin) {
   int a = 0, ch;
-  while (1) {
-    ch = fgetc_unlocked(fin);
-    if (ch == EOF) {
-      *eof = 1;
-      break;
-    }
+  while (!feof(fin)) {
+    ch = fgetc(fin);
     if (ch == 13) continue;
     if ((ch == ' ') || (ch == '\t') || (ch == '\n')) {
       if (a > 0) {
@@ -105,7 +101,7 @@ void ReadWord(char *word, FILE *fin, char *eof) {
         break;
       }
       if (ch == '\n') {
-        strcpy(word, (char *)"</s>");
+        strcpy(word, (char *) "</s>");
         return;
       } else continue;
     }
@@ -136,13 +132,10 @@ int SearchVocab(char *word) {
 }
 
 // Reads a word and returns its index in the vocabulary
-int ReadWordIndex(FILE *fin, char *eof) {
-  char word[MAX_STRING], eof_l = 0;
-  ReadWord(word, fin, &eof_l);
-  if (eof_l) {
-    *eof = 1;
-    return -1;
-  }
+int ReadWordIndex(FILE *fin) {
+  char word[MAX_STRING];
+  ReadWord(word, fin);
+  if (feof(fin)) return -1;
   return SearchVocab(word);
 }
 
@@ -235,7 +228,7 @@ void ReduceVocab() {
 }
 
 void LearnVocabFromTrainFile() {
-  char word[MAX_STRING], eof = 0;
+  char word[MAX_STRING];
   FILE *fin;
   long long a, i, wc = 0;
   for (a = 0; a < vocab_hash_size; a++) vocab_hash[a] = -1;
@@ -247,8 +240,8 @@ void LearnVocabFromTrainFile() {
   vocab_size = 0;
   AddWordToVocab((char *)"</s>");
   while (1) {
-    ReadWord(word, fin, &eof);
-    if (eof) break;
+    ReadWord(word, fin);
+    if (feof(fin)) break;
     train_words++;
     wc++;
     if ((debug_mode > 1) && (wc >= 1000000)) {
@@ -294,7 +287,7 @@ void SaveVocab() {
 
 void ReadVocab() {
   long long a, i = 0;
-  char c, eof = 0;
+  char c;
   char word[MAX_STRING];
   FILE *fin = fopen(read_vocab_file, "rb");
   if (fin == NULL) {
@@ -304,8 +297,8 @@ void ReadVocab() {
   for (a = 0; a < vocab_hash_size; a++) vocab_hash[a] = -1;
   vocab_size = 0;
   while (1) {
-    ReadWord(word, fin, &eof);
-    if (eof) break;
+    ReadWord(word, fin);
+    if (feof(fin)) break;
     a = AddWordToVocab(word);
     fscanf(fin, "%lld%c", &vocab[a].cn, &c);
     i++;
@@ -797,7 +790,6 @@ void *TrainModelThread(void *id) {
   long long l1, l2, l3 = 0, c, target, local_iter = 1;
   int word_counter = 0;
   unsigned long long next_random = (long long)id;
-  char eof = 0;
   real f, g, h, step, tree_loss = 0, cat_loss = 0;
   clock_t now;
   real *neu1 = (real *) calloc(layer1_size, sizeof(real));
@@ -823,8 +815,8 @@ void *TrainModelThread(void *id) {
     if (sentence_length == 0) {
       if (global_lambda > 0) doc = FindLine(fi);
       while (1) {
-        word = ReadWordIndex(fi, &eof);
-        if (eof) break;
+        word = ReadWordIndex(fi);
+        if (feof(fi)) break;
         if (word == -1) continue;
         word_count++;
         if (word == 0) break;
@@ -840,7 +832,7 @@ void *TrainModelThread(void *id) {
       }
       sentence_position = 0;
     }
-    if (eof || (word_count > train_words / num_threads)) {
+    if (feof(fi) || (word_count > train_words / num_threads)) {
       word_count_actual += word_count - last_word_count;
       local_iter--;
       if (local_iter == 0) break;
